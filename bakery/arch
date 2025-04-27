@@ -1,0 +1,124 @@
+<?php   
+session_start();
+include 'db.php';
+
+$result = $conn->query("SELECT * FROM products");
+
+// Check if the user is logged in
+$is_logged_in = isset($_SESSION['user_id']);
+$cart_count = isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bakery Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI0LTA2L2hpcHBvdW5pY29ybl9pbGx1c3RyYXRpb25fb2ZfbWluaW1hbF9zaW1wbGVfcGlua19kcmlwX21lbHRlZF9ib184NWRjY2IyYy1kZGZiLTRlZjAtYmE0OS0zYzQ4MGZmZjUwYjFfMS5qcGc.jpg') no-repeat center center fixed; /* Cake background image from Unsplash */
+            background-size: cover; /* Ensure the background image covers the entire body */
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            background-color: rgba(255, 180, 71, 0.7); /* Semi-transparent background for text contrast */
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .product {
+            background: rgba(255, 255, 255, 0.9); /* Semi-transparent background for product cards */
+            margin: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            width: 220px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: rgba(255, 180, 71, 0.7); /* Semi-transparent header for contrast */
+            color: white;
+        }
+        .header a, .header button {
+            color: white;
+            background-color: #ff704d;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .header button:hover, .header a:hover {
+            background-color: #e6603a;
+        }
+        .cart-count {
+            background-color: #4CAF50;
+            padding: 5px 10px;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header with logout and cart count -->
+    <div class="header">
+        <?php if ($is_logged_in): ?>
+            <div>
+                <button onclick="window.location.href='logout.php';">Logout</button>
+            </div>
+            <div>
+                <a href="cart.php">Cart <span class="cart-count"><?php echo $cart_count; ?></span></a>
+            </div>
+        <?php else: ?>
+            <div>
+                <a href="login.php">Login</a> | <a href="register.php">Register</a>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <h1>🍰 Welcome to Sweet Bites Bakery</h1>
+
+    <div class="container">
+        <div class="row">
+            <?php while($row = $result->fetch_assoc()): ?>
+                <?php
+                    // Define Bootstrap icons based on product type
+                    $icon_links = [
+                        'chocolate_cake' => 'bi bi-cupcake',  // Cupcake icon
+                        'croissant' => 'bi bi-basket',        // Basket icon
+                        'blueberry_muffin' => 'bi bi-cup',    // Cup icon
+                        'cupcake' => 'bi bi-cupcake',         // Cupcake icon
+                        'donut' => 'bi bi-pie-chart',         // Pie chart (representing donut-like shape)
+                    ];
+
+                    // Check if the product type exists in the $icon_links array
+                    $icon_class = isset($icon_links[strtolower($row['name'])]) ? $icon_links[strtolower($row['name'])] : 'bi bi-basket';  // Default icon if not found
+                ?>
+                <div class="col-12 col-md-4">
+                    <div class="product">
+                        <i class="<?php echo $icon_class; ?>" style="font-size: 80px; color: #ff704d;"></i>
+                        <h3><?php echo htmlspecialchars($row['name']); ?></h3>
+                        <p>Ksh <?php echo number_format($row['price'], 2); ?></p>
+                        <form method="post" action="cart.php">
+                            <input type="hidden" name="product_id" value="<?php echo $row['id']; ?>">
+                            <button type="submit" class="btn btn-primary">Add to Cart</button>
+                        </form>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
